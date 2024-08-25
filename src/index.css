@@ -1,0 +1,59 @@
+:root {
+  /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+*/
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+@font-face {
+  font-family: "USRegular"; /*Can be any text*/
+  src: local("UbuntuSans-Regular"),
+    url("./assets/fonts/UbuntuSans-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "USBold"; /*Can be any text*/
+  src: local("UbuntuSans-Bold"),
+    url("./assets/fonts/UbuntuSans-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "USMedium"; /*Can be any text*/
+  src: local("UbuntuSans-Medium"),
+    url("./assets/fonts/UbuntuSans-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "USSemiBold"; /*Can be any text*/
+  src: local("UbuntuSans-SemiBold"),
+    url("./assets/fonts/UbuntuSans-SemiBold.ttf") format("truetype");
+}
+
+.app {
+  padding: 0px;
+  margin: 0px;
+  box-sizing: border-box;
+}
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* make scrollbar transparent */
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

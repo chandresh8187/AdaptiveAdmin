@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CheckBox from "../../component/AICheckBox/CheckBox";
 import {
   addWordsInMissingList,
+  ConfirmModal,
   getCollocationMissingWordsList,
   refreshMCWordList,
   setSelectedMissingWords,
@@ -12,15 +13,21 @@ import { IconsAI } from "../../assets/Icons";
 import { RotatingLines, ThreeDots } from "react-loader-spinner";
 import { Grid } from "@mui/material";
 import { toast } from "react-toastify";
+import { Button, Flex, Tag } from "antd";
+import Modal from "../../component/AIModal/Modal";
 
 function MissingWords() {
   const dispatch = useDispatch();
   const missing_list = useSelector(
     (state) => state.Collocations.missing_collocations
   );
+  const api_payload = useSelector((state) => state.Collocations.api_payload);
   const ModalContentRef = useRef(null);
   const pageNumber = useSelector((state) => state.Collocations.MC_pageNumber);
   const Loading = useSelector((state) => state.Collocations.Loading);
+  const openConfirmModal = useSelector(
+    (state) => state.Collocations.openConfirmModal
+  );
   const [WordInput, setWordInput] = useState([{ word: "" }]);
   // it will halde word selection with check box in word tabel
   const onSelectWord = (word) => {
@@ -72,26 +79,33 @@ function MissingWords() {
             <div className="text-xl font-USBold text-TextPrimary">
               Words List
             </div>
-            <div className="flex flex-wrap ">
-              <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
-                <img src={IconsAI.Generate} className="h-5 w-5" alt="" />
-                <div className="text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                  Generate
+            {api_payload.length > 0 && (
+              <div className="flex flex-wrap ">
+                <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
+                  <img src={IconsAI.Generate} className="h-5 w-5" alt="" />
+                  <div className="text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                    Generate
+                  </div>
+                </div>
+                <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
+                  <img src={IconsAI.Edit} className="h-5 w-5" alt="" />
+                  <div className="text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                    Edit
+                  </div>
+                </div>
+                <div
+                  onClick={() => {
+                    dispatch(ConfirmModal(true));
+                  }}
+                  className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                >
+                  <img src={IconsAI.Trash} className="h-5 w-5" alt="" />
+                  <div className="text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                    Remove
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
-                <img src={IconsAI.Edit} className="h-5 w-5" alt="" />
-                <div className="text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                  Edit
-                </div>
-              </div>
-              <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
-                <img src={IconsAI.Trash} className="h-5 w-5" alt="" />
-                <div className="text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                  Remove
-                </div>
-              </div>
-            </div>
+            )}
           </div>
           <div>
             <div
@@ -170,13 +184,13 @@ function MissingWords() {
               </div>
               <div
                 onClick={() => {
-                  handleRemoveInput(WordInput.length - 1);
+                  handleAddWordsInMissingList();
                 }}
                 className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
               >
-                <img src={IconsAI.Trash} className="h-5 w-5" alt="" />
+                <img src={IconsAI.Save} className="h-5 w-5" alt="" />
                 <div className="text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                  Remove Field
+                  Save Words
                 </div>
               </div>
             </div>
@@ -204,34 +218,80 @@ function MissingWords() {
               >
                 {WordInput.map((val, i) => {
                   return (
-                    <Grid key={i} item xs={6} md={5}>
+                    <Grid
+                      key={i}
+                      display={"flex"}
+                      item
+                      xs={6}
+                      md={5}
+                      flexDirection={"row"}
+                    >
                       <input
                         value={val.word}
                         className="border w-full font-USRegular text-sm py-2 pl-3 outline-none rounded-md focus:border-Primary"
                         type="text"
-                        placeholder={`Enter Word ${i + 1}`}
+                        placeholder="Enter Word"
                         onChange={(e) => {
                           handleInputChange(e, i);
                         }}
                       />
+                      {i > 0 && (
+                        <Button
+                          onClick={() => {
+                            handleRemoveInput(i);
+                          }}
+                          type="text"
+                          size="small"
+                          style={{
+                            height: 40,
+                            width: 40,
+                            marginLeft: 5,
+                          }}
+                          icon={
+                            <img
+                              src={IconsAI.Trash}
+                              alt="Remove"
+                              height={25}
+                              width={25}
+                            />
+                          }
+                        />
+                      )}
                     </Grid>
                   );
                 })}
               </Grid>
             </InfiniteScroll>
           </div>
-          <div className="flex justify-center">
-            <div
-              onClick={() => {
-                handleAddWordsInMissingList();
-              }}
-              className="select-none px-5 rounded-md cursor-pointer py-2 bg-Primary text-white font-USMedium text-sm"
-            >
-              save words
-            </div>
-          </div>
         </div>
       </div>
+      <Modal visible={openConfirmModal}>
+        <div className="pt-5 pb-1 pl-5 font-USMedium text-TextPrimary text-base">
+          Are you sure you want to Remove words :
+        </div>
+        <div className="p-2 flex items-center justify-center flex-wrap">
+          {api_payload.map((word) => {
+            return (
+              <div className="m-1 text-sm font-USMedium py-1 shadow-sm rounded-md bg-gray-200 px-5">
+                {word}
+              </div>
+            );
+          })}
+        </div>
+        <div className="p-3 border-t font-USMedium text-TextPrimary text-base flex items-center justify-center">
+          <div
+            onClick={() => {
+              dispatch(ConfirmModal(false));
+            }}
+            className="bg-Primary select-none cursor-pointer text-white font-USSemiBold text-sm px-7 py-1 rounded-md"
+          >
+            No
+          </div>
+          <div className="bg-Primary ml-3 select-none cursor-pointer text-white font-USSemiBold text-sm px-7 py-1 rounded-md">
+            Yes
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

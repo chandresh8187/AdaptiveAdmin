@@ -125,7 +125,7 @@ export const getCollocationMissingWordsList = (
 ) => {
   return async (dispatch) => {
     dispatch(setLoadingWordList(true));
-    let pageSize = 10;
+    let pageSize = 50;
     const response = await APIClient.get(
       `missing_collocations?pageNumber=${pageNumber}&pageSize=${pageSize}`
     );

@@ -77,8 +77,8 @@ function MissingWords() {
 
   return (
     <div className="bg-container  h-screen w-full pb-16">
-      <div className="w-full flex p-5">
-        <div className="w-2/4 bg-white  p-5 rounded-md shadow-md">
+      <div className="w-full flex p-3">
+        <div className="w-2/4 bg-white h-screen p-5 rounded-md shadow-md">
           <div className="text-xl font-USBold text-TextPrimary">Words List</div>
           <div className="flex border-b  items-center h-12">
             {api_payload.length > 0 && (
@@ -113,15 +113,14 @@ function MissingWords() {
           <div
             id="scrollableDiv"
             style={{
-              height: window.innerHeight * 0.65,
               marginTop: 10,
             }}
-            className="flex flex-col overflow-auto"
+            className="flex flex-col overflow-auto h-4/5"
           >
             {/*Put the scroll bar always on the bottom*/}
             <InfiniteScroll
               loader={
-                <div className="flex justify-center items-center">
+                <div className="flex justify-center items-center ">
                   {Loading && (
                     <ThreeDots
                       visible={true}
@@ -144,6 +143,7 @@ function MissingWords() {
               inverse={false} //
               hasMore={true}
               scrollableTarget="scrollableDiv"
+              className="pb-10"
             >
               {missing_list.map((item, index) => {
                 return (
@@ -169,7 +169,7 @@ function MissingWords() {
             </InfiniteScroll>
           </div>
         </div>
-        <div className="bg-white w-full  mx-2 p-5 rounded-md shadow-md">
+        <div className="bg-white w-full h-screen  mx-2 p-5 rounded-md shadow-md">
           <div className="flex items-center">
             <div className="text-xl flex items-center font-USBold text-TextPrimary">
               Lexicore
@@ -195,21 +195,22 @@ function MissingWords() {
           <div
             id="scrollableDiv"
             style={{
-              height: window.innerHeight * 0.7,
-              overflow: "auto",
+              // height: window.innerHeight * 0.7,
+              overflow: "scroll",
               display: "flex",
               flexDirection: "column",
               marginTop: 5,
             }}
+            className="h-4/5"
           >
             <InfiniteScroll
               dataLength={WordInput.length}
               scrollableTarget="scrollableDiv"
-              className="py-1"
+              className="pt-1 pb-3"
             >
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
-                  Word :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold text-lg sm:text-xs text-TextPrimary">
+                  Word
                 </div>
                 <TextareaAutosize
                   cols={50}
@@ -217,12 +218,12 @@ function MissingWords() {
                     verticalAlign: "center",
                   }}
                   value={"educational reform ( Noun phrase )"}
-                  className="rounded-lg p-2 w-full text-TextPrimary sm:text-xs font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
+                  className="rounded-lg p-2 ml-5 mt-1 text-TextPrimary sm:text-xs font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
                 />
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold text-lg sm:text-sm text-TextPrimary">
-                  Meaning :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold text-lg sm:text-xs text-TextPrimary">
+                  Meaning
                 </div>
                 <TextareaAutosize
                   cols={50}
@@ -232,241 +233,261 @@ function MissingWords() {
                   value={
                     "Changes made to an education system with the aim of improving it. Educational reform typically involves updating teaching methods, curriculum, administration, funding or governance."
                   }
-                  className="rounded-lg p-2 w-full sm:text-xs text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
+                  className="rounded-lg ml-5 mt-1 p-2 w-fit sm:text-xs text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
                 />
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold text-lg sm:text-sm text-TextPrimary">
-                  Common Collocations :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold text-lg sm:text-xs text-TextPrimary">
+                  Common Collocations
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Implement educational reforms"}
-                  className="rounded-lg w-full p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Debate educational reforms"}
-                  className="rounded-lg w-full p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Debate educational reforms"}
-                  className=" rounded-lg p-2 w-full my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
+                <div className="pl-5 pt-1">
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"Implement educational reforms"}
+                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"Debate educational reforms"}
+                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"Debate educational reforms"}
+                    className=" rounded-lg p-2 w-fit my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                </div>
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold  text-lg sm:text-sm text-TextPrimary">
-                  examples :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold  text-lg sm:text-xs text-TextPrimary">
+                  Examples
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Many countries are debating educational reform to better prepare students for the future."
-                  }
-                  className="rounded-lg p-2 w-full my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "The new government has proposed sweeping educational reforms to address inequality in the school system."
-                  }
-                  className="rounded-lg w-full p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Critics argue that the proposed reforms do not go far enough to improve standards."
-                  }
-                  className="rounded-lg w-full p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Teachers' unions have opposed some of the reforms, saying they will increase workload without sufficient support."
-                  }
-                  className="rounded-lg w-full p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
+                <div className="pl-5 pt-1">
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "Many countries are debating educational reform to better prepare students for the future."
+                    }
+                    className="rounded-lg p-2 w-fit my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "The new government has proposed sweeping educational reforms to address inequality in the school system."
+                    }
+                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "Critics argue that the proposed reforms do not go far enough to improve standards."
+                    }
+                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "Teachers' unions have opposed some of the reforms, saying they will increase workload without sufficient support."
+                    }
+                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                </div>
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold  sm:text-sm text-lg text-TextPrimary">
-                  synonyms :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold  sm:text-xs text-lg text-TextPrimary">
+                  Synonyms
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Education overhaul"}
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Education revamp"}
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"School system changes"}
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
-                />
+                <div className="pl-5 pt-1">
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"Education overhaul"}
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"Education revamp"}
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"School system changes"}
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                </div>
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
-                  synonyms examples :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
+                  Synonyms Examples
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "The education minister announced plans for an education overhaul to make the system more relevant for the 21st century."
-                  }
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "After a decade of underfunding, the education department is in desperate need of a revamp to address declining results."
-                  }
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
+                <div className="pl-5 pt-1">
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "The education minister announced plans for an education overhaul to make the system more relevant for the 21st century."
+                    }
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "After a decade of underfunding, the education department is in desperate need of a revamp to address declining results."
+                    }
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                </div>
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
-                  Ielts Writing Topics :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
+                  Ielts Writing Topics
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Education systems - problems and solutions"}
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Improving education standards"}
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
+                <div className="pl-5 pt-1">
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"Education systems - problems and solutions"}
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={"Improving education standards"}
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                </div>
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
-                  Speaking Examples :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
+                  Speaking Examples
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Discuss the need for educational reform in your country and possible changes that could be made."
-                  }
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Explain the arguments for and against recent educational reforms in your area."
-                  }
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
+                <div className="pl-5 pt-1">
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "Discuss the need for educational reform in your country and possible changes that could be made."
+                    }
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "Explain the arguments for and against recent educational reforms in your area."
+                    }
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                </div>
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
-                  Common Errors :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold sm:text-xs text-lg  text-TextPrimary">
+                  Common Errors
                 </div>
-                <div className="sm:text-xs mt-1 text-TextPrimary font-USMedium">
-                  error :
+                <div className="pl-5 pt-1">
+                  <div className="flex items-center bg-[#f2f2f2] rounded-lg overflow-hidden px-2">
+                    <div className="sm:text-xs w-11 border-r text-TextPrimary font-USMedium">
+                      Error :
+                    </div>
+                    <TextareaAutosize
+                      cols={50}
+                      style={{
+                        verticalAlign: "center",
+                      }}
+                      value={"Mixing up 'reform' and 'reforms'"}
+                      className=" p-2 w-full  sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                    />
+                  </div>
+                  <div className="flex items-center mt-3 bg-[#f2f2f2] rounded-lg overflow-hidden px-2">
+                    <div className="sm:text-xs w-20 border-r text-TextPrimary font-USMedium">
+                      Correction :
+                    </div>
+                    <TextareaAutosize
+                      cols={50}
+                      style={{
+                        verticalAlign: "center",
+                      }}
+                      value={
+                        "Remember that 'reform' is usually used as a mass noun (like 'progress'), while 'reforms' refers to specific changes or proposed changes."
+                      }
+                      className=" p-2 w-full  sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                    />
+                  </div>
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"Mixing up 'reform' and 'reforms'"}
-                  className="rounded-lg p-2 w-full mb-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <div className="sm:text-xs mt-1 text-TextPrimary font-USMedium">
-                  correction
-                </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Remember that 'reform' is usually used as a mass noun (like 'progress'), while 'reforms' refers to specific changes or proposed changes."
-                  }
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
               </div>
-              <div className="py-1 flex flex-col items-start">
-                <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
-                  Usage Tips :
+              <div className="py-2 flex flex-col items-start">
+                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
+                  Usage Tips
                 </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Consider different stakeholders' perspectives when discussing educational reform"
-                  }
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Provide clear examples to illustrate any proposed reforms"
-                  }
-                  className="rounded-lg p-2 my-1 w-full sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                />
+                <div className="pl-5 pt-1">
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "Consider different stakeholders' perspectives when discussing educational reform"
+                    }
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                  <TextareaAutosize
+                    cols={50}
+                    style={{
+                      verticalAlign: "center",
+                    }}
+                    value={
+                      "Provide clear examples to illustrate any proposed reforms"
+                    }
+                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                  />
+                </div>
               </div>
             </InfiniteScroll>
           </div>
         </div>
-        <div className="w-2/4  bg-white p-5 rounded-md shadow-md">
+        <div className="w-2/4  bg-white p-5 h-screen rounded-md shadow-md">
           <div className="text-xl font-USBold text-TextPrimary">
             Add New Words
           </div>
@@ -497,12 +518,12 @@ function MissingWords() {
           <div
             id="scrollableDiv"
             style={{
-              height: window.innerHeight * 0.65,
               overflow: "auto",
               display: "flex",
               flexDirection: "column",
               paddingTop: 5,
             }}
+            className="h-4/5"
           >
             <InfiniteScroll
               dataLength={WordInput.length}

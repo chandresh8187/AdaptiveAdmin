@@ -240,7 +240,7 @@ function MissingWords() {
                 <div className="font-USBold text-lg sm:text-xs text-TextPrimary">
                   Common Collocations
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <TextareaAutosize
                     cols={50}
                     style={{
@@ -271,7 +271,7 @@ function MissingWords() {
                 <div className="font-USBold  text-lg sm:text-xs text-TextPrimary">
                   Examples
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <TextareaAutosize
                     cols={50}
                     style={{
@@ -318,7 +318,7 @@ function MissingWords() {
                 <div className="font-USBold  sm:text-xs text-lg text-TextPrimary">
                   Synonyms
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <TextareaAutosize
                     cols={50}
                     style={{
@@ -349,7 +349,7 @@ function MissingWords() {
                 <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
                   Synonyms Examples
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <TextareaAutosize
                     cols={50}
                     style={{
@@ -376,7 +376,7 @@ function MissingWords() {
                 <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
                   Ielts Writing Topics
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <TextareaAutosize
                     cols={50}
                     style={{
@@ -399,7 +399,7 @@ function MissingWords() {
                 <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
                   Speaking Examples
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <TextareaAutosize
                     cols={50}
                     style={{
@@ -426,7 +426,7 @@ function MissingWords() {
                 <div className="font-USBold sm:text-xs text-lg  text-TextPrimary">
                   Common Errors
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <div className="flex items-center bg-[#f2f2f2] rounded-lg overflow-hidden px-2">
                     <div className="sm:text-xs w-11 border-r text-TextPrimary font-USMedium">
                       Error :
@@ -461,7 +461,7 @@ function MissingWords() {
                 <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
                   Usage Tips
                 </div>
-                <div className="pl-5 pt-1">
+                <div className="pl-5 pt-1 flex flex-col">
                   <TextareaAutosize
                     cols={50}
                     style={{

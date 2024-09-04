@@ -26,27 +26,27 @@ body {
 }
 
 @font-face {
-  font-family: "USRegular"; /*Can be any text*/
-  src: local("UbuntuSans-Regular"),
-    url("./assets/fonts/UbuntuSans-Regular.ttf") format("truetype");
+  font-family: "USRegular";
+  src: local("Lato-Regular"),
+    url("./assets/fonts/Lato-Regular.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: "USBold"; /*Can be any text*/
-  src: local("UbuntuSans-Bold"),
-    url("./assets/fonts/UbuntuSans-Bold.ttf") format("truetype");
+  font-family: "USBold";
+  src: local("Lato-Bold"),
+    url("./assets/fonts/Lato-Bold.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: "USMedium"; /*Can be any text*/
-  src: local("UbuntuSans-Medium"),
-    url("./assets/fonts/UbuntuSans-Medium.ttf") format("truetype");
+  font-family: "USMedium";
+  src: local("Lato-Bold"),
+    url("./assets/fonts/Lato-Bold.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: "USSemiBold"; /*Can be any text*/
-  src: local("UbuntuSans-SemiBold"),
-    url("./assets/fonts/UbuntuSans-SemiBold.ttf") format("truetype");
+  font-family: "USSemiBold";
+  src: local("Lato-Bold"),
+    url("./assets/fonts/Lato-Bold.ttf") format("truetype");
 }
 
 .app {
@@ -54,7 +54,12 @@ body {
   margin: 0px;
   box-sizing: border-box;
 }
+
 ::-webkit-scrollbar {
-  width: 0px;
-  background: transparent; /* make scrollbar transparent */
+  /*Chrome, Safari, Edge*/
+  display: none;
+  /*FireFox*/
+  scrollbar-width: none;
+  /*IE10+*/
+  -ms-overflow-style: -ms-autohiding-scrollbar;
 }

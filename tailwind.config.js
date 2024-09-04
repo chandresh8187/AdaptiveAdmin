@@ -7,7 +7,7 @@ export default {
         Primary: "#111315",
         Secondry: "#1F2225",
         container: "rgb(240, 242, 245)",
-        TextPrimary: "#1F2225",
+        TextPrimary: "#000000",
         TextSecondry: "rgb(28, 30, 33)",
       },
     },

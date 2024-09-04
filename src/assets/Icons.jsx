@@ -5,6 +5,10 @@ import EditIcon from "./svg/edit.svg";
 import Logo from "./svg/LogoIcon.svg";
 import PlusIcon from "./svg/plus.svg";
 import SaveIcon from "./svg/save.svg";
+import ActionIcon from "./svg/action.svg";
+import NextIcon from "./svg/next_arrow.svg";
+import PrevIcon from "./svg/prev_arrow.svg";
+import CheckIcon from "./svg/checkMark.svg";
 export const IconsAI = {
   Dashboard: DashboardIcon,
   Generate: GenerateIcon,
@@ -13,4 +17,8 @@ export const IconsAI = {
   Logo: Logo,
   Plus: PlusIcon,
   Save: SaveIcon,
+  Action: ActionIcon,
+  Next: NextIcon,
+  Prev: PrevIcon,
+  Check: CheckIcon,
 };

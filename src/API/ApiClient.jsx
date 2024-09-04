@@ -27,7 +27,7 @@ export const APIClient = async (endpoint, { body, ...customConfig } = {}) => {
   return new Promise(async (resolve, reject) => {
     // proceed with the fetch
     let jsonRes = {
-      data: null,
+      data: [],
       ok: false,
       status: "",
     };
@@ -59,7 +59,7 @@ export const APIClient = async (endpoint, { body, ...customConfig } = {}) => {
           resolve(jsonRes);
         } else {
           jsonRes = {
-            data: null,
+            data: [],
             ok: response.ok,
             status: response.status,
             message: "",
@@ -71,7 +71,7 @@ export const APIClient = async (endpoint, { body, ...customConfig } = {}) => {
     } catch (error) {
       setLoading(false);
       jsonRes = {
-        data: null,
+        data: [],
         ok: false,
         status: "",
         message: `${error}`,

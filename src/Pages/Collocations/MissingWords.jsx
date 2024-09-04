@@ -1,23 +1,35 @@
-import { Grid } from "@mui/material";
 import { Button } from "antd";
 import React, { useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { ThreeDots } from "react-loader-spinner";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "react-toastify";
 import { IconsAI } from "../../assets/Icons";
 import CheckBox from "../../component/AICheckBox/CheckBox";
-import GenerateModal from "../../component/AIModal/GenerateModal";
 import Modal from "../../component/AIModal/Modal";
 import {
   addWordsInMissingList,
   ConfirmModal,
+  GenerateConntentFromWords,
   getCollocationMissingWordsList,
+  openGeneraterModal,
   removeWordFromMissingList,
+  setCurrentWordIndex,
+  setGenerater,
   setSelectedMissingWords,
+  updateContentCC,
+  updateContentCommanErrors,
+  updateContentExamples,
+  updateContentIWT,
+  updateContentMeaning,
+  updateContentPOP,
+  updateContentSpEx,
+  updateContentSynonyms,
+  updateContentSynonymsEx,
+  updateContentUsageTips,
+  updateContentWord,
 } from "../../Redux/Reducers/CollocationReducer";
-import TextareaAutosize from "react-textarea-autosize";
 
 function MissingWords() {
   const dispatch = useDispatch();
@@ -28,10 +40,20 @@ function MissingWords() {
   const ModalContentRef = useRef(null);
   const pageNumber = useSelector((state) => state.Collocations.MC_pageNumber);
   const Loading = useSelector((state) => state.Collocations.Loading);
-  const navigate = useNavigate();
+  const Content = useSelector((state) => state.Collocations.Content);
+  const GeneratorModal = useSelector(
+    (state) => state.Collocations.GeneratorModal
+  );
+  const Generator = useSelector((state) => state.Collocations.Generator);
+  const IsProcessing = useSelector((state) => state.Collocations.IsProcessing);
+  const CurrentWordIndex = useSelector(
+    (state) => state.Collocations.CurrentWordIndex
+  );
+
   const openConfirmModal = useSelector(
     (state) => state.Collocations.openConfirmModal
   );
+  const [IsEdit, setIsEdit] = useState(false);
   const [WordInput, setWordInput] = useState([{ word: "" }]);
   // it will halde word selection with check box in word tabel
   const onSelectWord = (word) => {
@@ -75,6 +97,24 @@ function MissingWords() {
     setWordInput(onChangeVal);
   };
 
+  // it will hanlde next word content navigation
+  const handleNextWord = () => {
+    if (CurrentWordIndex < Content.length - 1) {
+      dispatch(setCurrentWordIndex(CurrentWordIndex + 1));
+    } else {
+      dispatch(setCurrentWordIndex(CurrentWordIndex));
+    }
+  };
+
+  // it will handle prev word content navigation
+  const handlePrevWord = () => {
+    if (CurrentWordIndex > 0) {
+      dispatch(setCurrentWordIndex(CurrentWordIndex - 1));
+    } else {
+      dispatch(setCurrentWordIndex(CurrentWordIndex));
+    }
+  };
+
   return (
     <div className="bg-container  h-screen w-full pb-16">
       <div className="w-full flex p-3">
@@ -83,7 +123,12 @@ function MissingWords() {
           <div className="flex border-b  items-center h-12">
             {api_payload.length > 0 && (
               <>
-                <div className="flex h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
+                <div
+                  onClick={() => {
+                    dispatch(openGeneraterModal(true));
+                  }}
+                  className="flex h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                >
                   <img src={IconsAI.Generate} className="h-5 w-5" alt="" />
                   <div className="text-sm sm:text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
                     Generate
@@ -160,7 +205,7 @@ function MissingWords() {
                         onClick={onSelectWord}
                       />
                     </div>
-                    <div className="text-center ml-5 font-USSemiBold text-sm sm:text-xs text-TextPrimary">
+                    <div className="text-center ml-5 font-USSemiBold text-sm sm:text-sm text-TextPrimary">
                       {item.word}
                     </div>
                   </div>
@@ -178,313 +223,487 @@ function MissingWords() {
               (Essential vocabulary tool)
             </div>
           </div>
-          <div className="flex flex-wrap border-b  items-center h-12">
-            <div className="flex h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
-              <img src={IconsAI.Edit} className="h-5 w-5" alt="" />
-              <div className="text-sm sm:text-xs ml-2 mr-2 select-none font-USSemiBold text-TextPrimary">
-                Edit
+
+          <div className="flex justify-between border-b  items-center h-12">
+            {Content.length > 0 && (
+              <div className="flex items-center">
+                <div
+                  onClick={() => {
+                    setIsEdit(!IsEdit);
+                  }}
+                  className="flex h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                >
+                  <img
+                    src={IsEdit ? IconsAI.Check : IconsAI.Edit}
+                    className="h-5 w-5"
+                    alt=""
+                  />
+                  <div className="text-sm sm:text-xs ml-2 mr-2 select-none font-USSemiBold text-TextPrimary">
+                    {IsEdit ? "Done" : "Edit"}
+                  </div>
+                </div>
+                <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
+                  <img src={IconsAI.Save} className="h-5 w-5" alt="" />
+                  <div className="text-sm sm:text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                    Save
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
-              <img src={IconsAI.Save} className="h-5 w-5" alt="" />
-              <div className="text-sm sm:text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                Save
+            )}
+
+            {Content.length > 1 && (
+              <div className="flex items-center">
+                <div
+                  onClick={() => {
+                    handlePrevWord();
+                  }}
+                  className="flex  items-center justify-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                >
+                  <img src={IconsAI.Prev} className="h-5 w-5" alt="" />
+                  <div className="text-sm sm:text-xs mr-2 select-none font-USSemiBold text-TextPrimary">
+                    Prev
+                  </div>
+                </div>
+                <div
+                  onClick={() => {
+                    handleNextWord();
+                  }}
+                  className="flex  items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                >
+                  <div className="text-sm sm:text-xs ml-2 select-none justify-center font-USSemiBold text-TextPrimary">
+                    Next
+                  </div>
+                  <img src={IconsAI.Next} className="h-5 w-5" alt="" />
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <div
             id="scrollableDiv"
             style={{
-              // height: window.innerHeight * 0.7,
+              height: "calc(100vh - 200px)",
               overflow: "scroll",
               display: "flex",
               flexDirection: "column",
               marginTop: 5,
             }}
-            className="h-4/5"
+            // className="h-full"
           >
-            <InfiniteScroll
-              dataLength={WordInput.length}
-              scrollableTarget="scrollableDiv"
-              className="pt-1 pb-3"
-            >
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold text-lg sm:text-xs text-TextPrimary">
-                  Word
-                </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={"educational reform ( Noun phrase )"}
-                  className="rounded-lg p-2 ml-5 mt-1 text-TextPrimary sm:text-xs font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold text-lg sm:text-xs text-TextPrimary">
-                  Meaning
-                </div>
-                <TextareaAutosize
-                  cols={50}
-                  style={{
-                    verticalAlign: "center",
-                  }}
-                  value={
-                    "Changes made to an education system with the aim of improving it. Educational reform typically involves updating teaching methods, curriculum, administration, funding or governance."
-                  }
-                  className="rounded-lg ml-5 mt-1 p-2 w-fit sm:text-xs text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
-                />
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold text-lg sm:text-xs text-TextPrimary">
-                  Common Collocations
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"Implement educational reforms"}
-                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"Debate educational reforms"}
-                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"Debate educational reforms"}
-                    className=" rounded-lg p-2 w-fit my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                </div>
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold  text-lg sm:text-xs text-TextPrimary">
-                  Examples
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "Many countries are debating educational reform to better prepare students for the future."
-                    }
-                    className="rounded-lg p-2 w-fit my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "The new government has proposed sweeping educational reforms to address inequality in the school system."
-                    }
-                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "Critics argue that the proposed reforms do not go far enough to improve standards."
-                    }
-                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "Teachers' unions have opposed some of the reforms, saying they will increase workload without sufficient support."
-                    }
-                    className="rounded-lg w-fit p-2 my-1 sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                </div>
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold  sm:text-xs text-lg text-TextPrimary">
-                  Synonyms
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"Education overhaul"}
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"Education revamp"}
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"School system changes"}
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                </div>
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
-                  Synonyms Examples
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "The education minister announced plans for an education overhaul to make the system more relevant for the 21st century."
-                    }
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "After a decade of underfunding, the education department is in desperate need of a revamp to address declining results."
-                    }
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                </div>
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
-                  Ielts Writing Topics
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"Education systems - problems and solutions"}
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={"Improving education standards"}
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                </div>
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
-                  Speaking Examples
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "Discuss the need for educational reform in your country and possible changes that could be made."
-                    }
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "Explain the arguments for and against recent educational reforms in your area."
-                    }
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                </div>
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold sm:text-xs text-lg  text-TextPrimary">
-                  Common Errors
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
-                  <div className="flex items-center bg-[#f2f2f2] rounded-lg overflow-hidden px-2">
-                    <div className="sm:text-xs w-11 border-r text-TextPrimary font-USMedium">
-                      Error :
+            {Content.length > 0 ? (
+              <div>
+                <div className="py-2 flex  items-start">
+                  <div className="">
+                    <div className="font-USBold text-lg sm:text-sm text-TextPrimary">
+                      Word
                     </div>
                     <TextareaAutosize
-                      cols={50}
+                      cols={25}
                       style={{
                         verticalAlign: "center",
                       }}
-                      value={"Mixing up 'reform' and 'reforms'"}
-                      className=" p-2 w-full  sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                    />
-                  </div>
-                  <div className="flex items-center mt-3 bg-[#f2f2f2] rounded-lg overflow-hidden px-2">
-                    <div className="sm:text-xs w-20 border-r text-TextPrimary font-USMedium">
-                      Correction :
-                    </div>
-                    <TextareaAutosize
-                      cols={50}
-                      style={{
-                        verticalAlign: "center",
-                      }}
-                      value={
-                        "Remember that 'reform' is usually used as a mass noun (like 'progress'), while 'reforms' refers to specific changes or proposed changes."
+                      readOnly={!IsEdit}
+                      value={Content[CurrentWordIndex].word}
+                      onChange={(e) =>
+                        dispatch(
+                          updateContentWord(e.target.value, CurrentWordIndex)
+                        )
                       }
-                      className=" p-2 w-full  sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                      className="rounded-lg p-4 ml-5 mt-1 text-TextPrimary sm:text-sm font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
+                    />
+                  </div>
+                  <div>
+                    <div className="font-USBold ml-3 text-lg sm:text-sm text-TextPrimary">
+                      Part Of Speech
+                    </div>
+                    <TextareaAutosize
+                      cols={25}
+                      style={{
+                        verticalAlign: "center",
+                      }}
+                      readOnly={!IsEdit}
+                      value={Content[CurrentWordIndex].partOfSpeech}
+                      onChange={(e) =>
+                        dispatch(
+                          updateContentPOP(e.target.value, CurrentWordIndex)
+                        )
+                      }
+                      className="rounded-lg p-4 ml-5 mt-1 text-TextPrimary sm:text-sm font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
                     />
                   </div>
                 </div>
-              </div>
-              <div className="py-2 flex flex-col items-start">
-                <div className="font-USBold sm:text-xs text-lg text-TextPrimary">
-                  Usage Tips
-                </div>
-                <div className="pl-5 pt-1 flex flex-col">
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold text-lg sm:text-sm text-TextPrimary">
+                    Meaning
+                  </div>
                   <TextareaAutosize
                     cols={50}
                     style={{
                       verticalAlign: "center",
                     }}
-                    value={
-                      "Consider different stakeholders' perspectives when discussing educational reform"
+                    readOnly={!IsEdit}
+                    onChange={(e) =>
+                      dispatch(
+                        updateContentMeaning(e.target.value, CurrentWordIndex)
+                      )
                     }
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                  />
-                  <TextareaAutosize
-                    cols={50}
-                    style={{
-                      verticalAlign: "center",
-                    }}
-                    value={
-                      "Provide clear examples to illustrate any proposed reforms"
-                    }
-                    className="rounded-lg p-2 my-1 w-fit sm:text-xs text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                    value={Content[CurrentWordIndex].meaning}
+                    className="rounded-lg ml-5 mt-1 p-4 w-fit sm:text-sm text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
                   />
                 </div>
+                <div className="py-2 flex flex-nowrap  flex-col items-start">
+                  <div className="font-USBold text-lg sm:text-sm text-TextPrimary">
+                    Common Collocations
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    {Content[CurrentWordIndex].commonCollocations.map(
+                      (cc, i) => {
+                        return (
+                          <TextareaAutosize
+                            key={i}
+                            cols={50}
+                            style={{
+                              verticalAlign: "center",
+                            }}
+                            readOnly={!IsEdit}
+                            onChange={(e) =>
+                              dispatch(
+                                updateContentCC(
+                                  e.target.value,
+                                  CurrentWordIndex,
+                                  i
+                                )
+                              )
+                            }
+                            value={cc}
+                            className="rounded-lg w-fit p-4 my-1 sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                          />
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold  text-lg sm:text-sm text-TextPrimary">
+                    Examples
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    <TextareaAutosize
+                      cols={50}
+                      readOnly={!IsEdit}
+                      style={{
+                        verticalAlign: "center",
+                      }}
+                      onChange={(e) =>
+                        dispatch(
+                          updateContentExamples(
+                            e.target.value,
+                            CurrentWordIndex,
+                            "E"
+                          )
+                        )
+                      }
+                      value={Content[CurrentWordIndex].example}
+                      className="rounded-lg w-fit p-4 my-1 sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                    />
+                    {Content[CurrentWordIndex].examples.map((ex, i) => {
+                      return (
+                        <TextareaAutosize
+                          key={i}
+                          cols={50}
+                          style={{
+                            verticalAlign: "center",
+                          }}
+                          readOnly={!IsEdit}
+                          onChange={(e) =>
+                            dispatch(
+                              updateContentExamples(
+                                e.target.value,
+                                CurrentWordIndex,
+                                i
+                              )
+                            )
+                          }
+                          value={ex}
+                          className="rounded-lg w-fit p-4 my-1 sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold  sm:text-sm text-lg text-TextPrimary">
+                    Synonyms
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    {Content[CurrentWordIndex].synonyms.map((syn, i) => {
+                      return (
+                        <TextareaAutosize
+                          key={i}
+                          readOnly={!IsEdit}
+                          cols={50}
+                          style={{
+                            verticalAlign: "center",
+                          }}
+                          onChange={(e) =>
+                            dispatch(
+                              updateContentSynonyms(
+                                e.target.value,
+                                CurrentWordIndex,
+                                i
+                              )
+                            )
+                          }
+                          value={syn}
+                          className="rounded-lg p-4 my-1 w-fit sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold sm:text-sm text-lg  text-TextPrimary">
+                    Synonym Examples
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    {Content[CurrentWordIndex].synonymExamples.map(
+                      (synex, i) => {
+                        return (
+                          <div
+                            key={i}
+                            className="flex mt-2 flex-col items-center  bg-[#f2f2f2]  rounded-lg overflow-hidden p-4"
+                          >
+                            <div className="bg-transparent flex items-center ">
+                              <div className="sm:text-sm w-20 text-end pr-2 border-r text-TextPrimary font-USMedium">
+                                Synonym
+                              </div>
+                              <TextareaAutosize
+                                readOnly={!IsEdit}
+                                cols={50}
+                                onChange={(e) =>
+                                  dispatch(
+                                    updateContentSynonymsEx(
+                                      e.target.value,
+                                      CurrentWordIndex,
+                                      i,
+                                      "synonym"
+                                    )
+                                  )
+                                }
+                                style={{
+                                  verticalAlign: "center",
+                                }}
+                                value={synex.synonym}
+                                className="pl-2 w-full  sm:text-sm text-TextPrimary bg-transparent font-USMedium  outline-none border-none resize-none"
+                              />
+                            </div>
+                            <div className="bg-transparent pt-2 flex items-center ">
+                              <div className="sm:text-sm w-20 text-end pr-2  border-r text-TextPrimary font-USMedium">
+                                Example
+                              </div>
+                              <TextareaAutosize
+                                cols={50}
+                                readOnly={!IsEdit}
+                                onChange={(e) =>
+                                  dispatch(
+                                    updateContentSynonymsEx(
+                                      e.target.value,
+                                      CurrentWordIndex,
+                                      i,
+                                      "example"
+                                    )
+                                  )
+                                }
+                                style={{
+                                  verticalAlign: "center",
+                                }}
+                                value={synex.example}
+                                className="pl-2 w-full  sm:text-sm text-TextPrimary font-USMedium  bg-transparent outline-none border-none resize-none"
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
+                    Ielts Writing Topics
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    {Content[CurrentWordIndex].ieltsWritingTopics.map(
+                      (iwt, i) => {
+                        return (
+                          <TextareaAutosize
+                            readOnly={!IsEdit}
+                            key={i}
+                            cols={50}
+                            style={{
+                              verticalAlign: "center",
+                            }}
+                            onChange={(e) =>
+                              dispatch(
+                                updateContentIWT(
+                                  e.target.value,
+                                  CurrentWordIndex,
+                                  i
+                                )
+                              )
+                            }
+                            value={iwt}
+                            className="rounded-lg p-4 my-1 w-fit sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                          />
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
+                    Speaking Examples
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    {Content[CurrentWordIndex].speakingExamples.map(
+                      (spex, i) => {
+                        return (
+                          <TextareaAutosize
+                            key={i}
+                            cols={50}
+                            readOnly={!IsEdit}
+                            onChange={(e) =>
+                              dispatch(
+                                updateContentSpEx(
+                                  e.target.value,
+                                  CurrentWordIndex,
+                                  i
+                                )
+                              )
+                            }
+                            style={{
+                              verticalAlign: "center",
+                            }}
+                            value={spex}
+                            className="rounded-lg p-4 my-1 w-fit sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                          />
+                        );
+                      }
+                    )}
+                  </div>
+                </div>
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold sm:text-sm text-lg  text-TextPrimary">
+                    Common Errors
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    {Content[CurrentWordIndex].commonErrors.map((cEr, i) => {
+                      return (
+                        <div
+                          key={i}
+                          className="flex mt-2 flex-col items-center  bg-[#f2f2f2]  rounded-lg overflow-hidden p-4"
+                        >
+                          <div className="bg-transparent flex items-center ">
+                            <div className="sm:text-sm w-24 text-end pr-2  border-r text-TextPrimary font-USMedium">
+                              Error
+                            </div>
+                            <TextareaAutosize
+                              cols={50}
+                              readOnly={!IsEdit}
+                              onChange={(e) =>
+                                dispatch(
+                                  updateContentCommanErrors(
+                                    e.target.value,
+                                    CurrentWordIndex,
+                                    i,
+                                    "error"
+                                  )
+                                )
+                              }
+                              style={{
+                                verticalAlign: "center",
+                              }}
+                              value={cEr.error}
+                              className="pl-2 w-full  sm:text-sm text-TextPrimary bg-transparent font-USMedium  outline-none border-none resize-none"
+                            />
+                          </div>
+                          <div className="bg-transparent  flex items-center pt-2">
+                            <div className="sm:text-sm w-24 text-end pr-2 border-r text-TextPrimary font-USMedium">
+                              Correction
+                            </div>
+                            <TextareaAutosize
+                              cols={50}
+                              style={{
+                                verticalAlign: "center",
+                              }}
+                              readOnly={!IsEdit}
+                              onChange={(e) =>
+                                dispatch(
+                                  updateContentCommanErrors(
+                                    e.target.value,
+                                    CurrentWordIndex,
+                                    i,
+                                    "correction"
+                                  )
+                                )
+                              }
+                              value={cEr.correction}
+                              className="pl-2 w-full  sm:text-sm text-TextPrimary font-USMedium  bg-transparent outline-none border-none resize-none"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="py-2 flex flex-col items-start">
+                  <div className="font-USBold sm:text-sm text-lg text-TextPrimary">
+                    Usage Tips
+                  </div>
+                  <div className="pl-5 pt-1 flex flex-col">
+                    {Content[CurrentWordIndex].usageTips.map((usgtp, i) => {
+                      return (
+                        <TextareaAutosize
+                          key={i}
+                          cols={50}
+                          onChange={(e) =>
+                            dispatch(
+                              updateContentUsageTips(
+                                e.target.value,
+                                CurrentWordIndex,
+                                i
+                              )
+                            )
+                          }
+                          readOnly={!IsEdit}
+                          style={{
+                            verticalAlign: "center",
+                          }}
+                          value={usgtp}
+                          className="rounded-lg p-4 my-1 w-fit sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </InfiniteScroll>
+            ) : IsProcessing ? (
+              <div className="h-full w-full flex items-center justify-center">
+                <ThreeDots
+                  visible={true}
+                  height="50"
+                  width="50"
+                  color="#1F2225"
+                  radius="9"
+                  ariaLabel="three-dots-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                />
+              </div>
+            ) : (
+              <div className="h-full w-full flex items-center justify-center flex-col font-USBold">
+                <div>No Data Found</div>
+                <div>Please Generate Some Content</div>
+              </div>
+            )}
           </div>
         </div>
         <div className="w-2/4  bg-white p-5 h-screen rounded-md shadow-md">
@@ -528,6 +747,7 @@ function MissingWords() {
             <InfiniteScroll
               dataLength={WordInput.length}
               scrollableTarget="scrollableDiv"
+              className="pb-6"
             >
               {WordInput.map((val, i) => {
                 return (
@@ -599,6 +819,67 @@ function MissingWords() {
             className="bg-Primary ml-3 select-none cursor-pointer text-white font-USSemiBold text-sm px-7 py-1 rounded-md"
           >
             Yes
+          </div>
+        </div>
+      </Modal>
+      <Modal visible={GeneratorModal}>
+        <div className="font-USBold text-sm w-full text-center pb-2 pt-4">
+          Choose Generator
+        </div>
+        <div className="py-2">
+          <div className="flex items-center justify-center">
+            <div
+              onClick={() => {
+                dispatch(setGenerater("Chat-GPT"));
+              }}
+              className={`${
+                Generator === "Chat-GPT"
+                  ? "border-b-2 border-b-green-500 "
+                  : "hover:bg-gray-100"
+              } flex h-7 border mr-1 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100`}
+            >
+              <img src={IconsAI.Action} className="h-5 w-5" alt="" />
+              <div className="text-sm sm:text-xs ml-2 mr-2 h-4 select-none font-USSemiBold text-TextPrimary">
+                Chat-GPT
+              </div>
+            </div>
+            <div
+              onClick={() => {
+                dispatch(setGenerater("claude"));
+              }}
+              className={`${
+                Generator === "claude"
+                  ? "border-b-2 border-b-green-500 "
+                  : "hover:bg-gray-100"
+              } flex h-7 ml-1 border items-center px-2 py-1 rounded-md cursor-pointer `}
+            >
+              <img src={IconsAI.Action} className="h-5 w-5" alt="" />
+              <div className="text-sm sm:text-xs ml-2 mr-2 h-4 select-none font-USSemiBold text-TextPrimary">
+                Claude
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex p-2 items-center justify-end border-t">
+          <div
+            onClick={() => {
+              dispatch(openGeneraterModal(false));
+            }}
+            className="flex border mr-1 h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+          >
+            <div className="text-sm sm:text-xs ml-2 mr-2 h-4 select-none font-USSemiBold text-TextPrimary">
+              Cancel
+            </div>
+          </div>
+          <div
+            onClick={() => {
+              dispatch(GenerateConntentFromWords(api_payload, Generator));
+            }}
+            className="flex border bg-Primary ml-1 h-7 items-center px-2 py-1 rounded-md cursor-pointer"
+          >
+            <div className="text-sm sm:text-xs ml-2 mr-2 h-4 select-none font-USSemiBold text-white">
+              Generate
+            </div>
           </div>
         </div>
       </Modal>

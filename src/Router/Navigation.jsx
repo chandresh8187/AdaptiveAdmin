@@ -9,6 +9,7 @@ function Navigation() {
       <Route path="/" index element={<Home />} />
       <Route path="MissingWords" element={<MissingWords />} />
       <Route path="RemovedWords" element={<RemovedWords />} />
+      <Route path="*" element={<Home />} />
     </Routes>
   );
 }

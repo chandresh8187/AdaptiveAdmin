@@ -20,9 +20,9 @@ const Sidebar = () => {
   }, []);
 
   return (
-    <section className="flex ">
+    <div className="flex  ">
       <div
-        className={`bg-Primary select-none min-h-screen w-52 duration-500 text-gray-100`}
+        className={`bg-Primary select-none h-screen w-52 duration-500 text-gray-100`}
       >
         <div className="h-16 border-b text-center flex justify-center  border-r items-center ">
           <div className="bg-white object-contain p-2 rounded-md">
@@ -89,11 +89,11 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      <div className="w-full bg-[#F5F5F5]">
+      <div className="w-full h-screen p-3 overflow-scroll bg-container">
         <Header title={location.pathname} />
         <Navigation />
       </div>
-    </section>
+    </div>
   );
 };
 

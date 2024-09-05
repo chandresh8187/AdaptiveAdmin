@@ -19,10 +19,7 @@
 
 html,
 body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
+  box-sizing: border-box;
 }
 
 @font-face {
@@ -47,12 +44,6 @@ body {
   font-family: "USSemiBold";
   src: local("Lato-Bold"),
     url("./assets/fonts/Lato-Bold.ttf") format("truetype");
-}
-
-.app {
-  padding: 0px;
-  margin: 0px;
-  box-sizing: border-box;
 }
 
 ::-webkit-scrollbar {

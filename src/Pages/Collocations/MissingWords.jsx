@@ -1,14 +1,8 @@
-import { Button } from "antd";
 import React, { useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { ThreeDots } from "react-loader-spinner";
 import { useDispatch, useSelector } from "react-redux";
 import TextareaAutosize from "react-textarea-autosize";
-import { toast } from "react-toastify";
-import { IconsAI } from "../../assets/Icons";
-import CheckBox from "../../component/AICheckBox/CheckBox";
-import Modal from "../../component/AIModal/Modal";
-import FlatList from "flatlist-react";
 import {
   addWordsInMissingList,
   ConfirmModal,
@@ -31,7 +25,10 @@ import {
   updateContentUsageTips,
   updateContentWord,
 } from "../../Redux/Reducers/CollocationReducer";
+import { IconsAI } from "../../assets/Icons";
+import CheckBox from "../../component/AICheckBox/CheckBox";
 import Header from "../../component/AIHeader/Header";
+import Modal from "../../component/AIModal/Modal";
 
 function MissingWords() {
   const dispatch = useDispatch();

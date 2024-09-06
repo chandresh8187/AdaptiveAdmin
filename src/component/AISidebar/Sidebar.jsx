@@ -89,8 +89,7 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      <div className="w-full h-screen p-3 overflow-scroll bg-container">
-        <Header title={location.pathname} />
+      <div className="w-full h-screen overflow-scroll bg-container">
         <Navigation />
       </div>
     </div>

@@ -120,7 +120,7 @@ export const setCurrentWordIndex = (index) => ({
 // for add new words
 export const addWordsInMissingList = (NewWordsList) => {
   return async (dispatch) => {
-    let ApiPayload = NewWordsList.map((it) => it.word);
+    let ApiPayload = NewWordsList;
     let body = {
       collocation_list: ApiPayload,
     };

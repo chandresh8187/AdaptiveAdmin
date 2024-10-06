@@ -608,24 +608,43 @@ function collocationsReducer(state = initialState, action) {
       var MainIndex = action.payload.index;
       var SubIndex = action.payload.subIndex;
       var key = action.payload.key;
-
-      return {
-        ...state,
-        Content: state.Content.map((c, i) => {
-          if (i === MainIndex) {
-            return {
-              ...c,
-              ieltsWritingTopics: c.ieltsWritingTopics.map((IWT, Iwti) => {
-                if (Iwti === SubIndex) {
-                  return IWTValue;
-                }
-                return IWT;
-              }),
-            };
-          }
-          return c;
-        }),
-      };
+      if (key === "topic") {
+        return {
+          ...state,
+          Content: state.Content.map((c, i) => {
+            if (i === MainIndex) {
+              return {
+                ...c,
+                ieltsWritingTopics: c.ieltsWritingTopics.map((IWT, Iwti) => {
+                  if (Iwti === SubIndex) {
+                    return { ...IWT, topic: IWTValue };
+                  }
+                  return IWT;
+                }),
+              };
+            }
+            return c;
+          }),
+        };
+      } else {
+        return {
+          ...state,
+          Content: state.Content.map((c, i) => {
+            if (i === MainIndex) {
+              return {
+                ...c,
+                ieltsWritingTopics: c.ieltsWritingTopics.map((IWT, Iwti) => {
+                  if (Iwti === SubIndex) {
+                    return { ...IWT, example: IWTValue };
+                  }
+                  return IWT;
+                }),
+              };
+            }
+            return c;
+          }),
+        };
+      }
     case "UPDATE_CONTENT_SPEAKING_EXAMPLE":
       let SPEXValue = action.payload.value;
       var MainIndex = action.payload.index;

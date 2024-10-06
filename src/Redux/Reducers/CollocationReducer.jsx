@@ -1,6 +1,6 @@
-import { APIClient } from "../../API/ApiClient";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
+import { APIClient } from "../../API/ApiClient";
 const initialState = {
   missing_collocations: [],
   Loading: false,
@@ -13,12 +13,160 @@ const initialState = {
   GeneratorModal: false,
   IsProcessing: false,
   CurrentWordIndex: 0,
+  collection_names: [],
+  selected_collection: "",
+  word_sets: [],
+  LoadingCollections: false,
+  LoadingWordSets: false,
+  selected_wordset: "",
+  selected_list_type: "existing",
+  vocabularyList: {
+    missing: [],
+    existing: [],
+  },
+  opened_collection: "",
+  vocabularyContent: [],
+};
+export const setSelectedCollection = (collection) => ({
+  type: "SET_SELECTED_COLLECTION",
+  payload: collection,
+});
+
+export const setOpenedCollection = (collection) => ({
+  type: "SET_OPENED_COLLECTION",
+  payload: collection,
+});
+
+export const setSelectedListType = (type) => {
+  return async (dispatch) => {
+    dispatch({
+      type: "SET_SELECTED_LIST_TYPE",
+      payload: type,
+    });
+    dispatch({
+      type: "SET_VOCABULARY_LIST",
+      payload: { ListType: type, data: [] },
+    });
+    dispatch(setSelectedCollection(""));
+    dispatch(setSelectedWordset(""));
+    dispatch(setOpenedCollection(""));
+    dispatch({
+      type: "SET_GENERATED_CONTENT",
+      payload: [],
+    });
+  };
 };
 
-// WordInput
+export const setSelectedWordset = (wordset) => ({
+  type: "SET_SELECTED_WORDSET",
+  payload: wordset,
+});
+
+export const getWordSetsByCollection = (collection) => {
+  return async (dispatch) => {
+    const response = await APIClient.post("word_sets", {
+      collection_name: collection,
+    });
+    if (response.ok && response.status === 200) {
+      dispatch({
+        type: "SET_WORDS_SETS",
+        payload: [],
+      });
+      dispatch(setLoadingWordSets(false));
+
+      dispatch({
+        type: "SET_WORDS_SETS",
+        payload: response.data,
+      });
+    }
+    console.log("response word set", response);
+  };
+};
+
+export const getExistingVocabulary = (
+  ListType,
+  collection_name,
+  word_set_name
+) => {
+  return async (dispatch) => {
+    dispatch(setLoadingWordList(true));
+    dispatch({
+      type: "SET_VOCABULARY_LIST",
+      payload: { ListType: ListType, data: [] },
+    });
+    const response = await APIClient.post("vocabulary", {
+      collection_name: collection_name,
+      word_set_name: word_set_name,
+    });
+    if (response.ok && response.status === 200) {
+      const data = CreateWordListJsonForVocabulary(response.data);
+      dispatch({
+        type: "SET_VOCABULARY_LIST",
+        payload: { ListType: ListType, data: data },
+      });
+      dispatch({
+        type: "SET_VOCABULARY_CONTENT",
+        payload: response.data,
+      });
+      console.log("getExistingVocabulary", response.data);
+    }
+    dispatch(setLoadingWordList(false));
+  };
+};
+
+export const showVocabularyContent = (word, content = []) => {
+  return async (dispatch) => {
+    // dispatch({
+    //   type: "SET_GENERATED_CONTENT",
+    //   payload: [],
+    // });
+    dispatch(setIsProcessing(true));
+    const ContentData = content.filter((item, index) => {
+      if (item.word === word) {
+        return item;
+      }
+    });
+    dispatch({
+      type: "SET_GENERATED_CONTENT",
+      payload: ContentData,
+    });
+    dispatch(setIsProcessing(false));
+
+    console.log("ContentData", JSON.stringify(ContentData));
+  };
+};
+
+export const getCollectionList = () => {
+  return async (dispatch) => {
+    dispatch(setLoadingCollections(true));
+    const response = await APIClient.post("vocabulary_collection_names");
+    if (response.ok && response.status === 200) {
+      dispatch({
+        type: "SET_COLLECTION_NAMES",
+        payload: response.data.vocabulary_collection_names,
+      });
+      dispatch(setLoadingCollections(false));
+    } else {
+      dispatch(setLoadingCollections(false));
+      toast.error(response.message);
+    }
+  };
+};
+
 const CreateWordListJson = (list) => {
   let generatedList = list.map((word) => ({
     word,
+    id: uuidv4(),
+    isRemoved: false,
+    isGenerated: false,
+    isSelected: false,
+  }));
+  return generatedList;
+};
+
+const CreateWordListJsonForVocabulary = (list) => {
+  let generatedList = list.map((word) => ({
+    word: word.word,
     id: uuidv4(),
     isRemoved: false,
     isGenerated: false,
@@ -62,14 +210,14 @@ export const updateContentSynonymsEx = (value, index, subIndex, key) => ({
   payload: { value, index, subIndex, key },
 });
 
-export const updateContentIWT = (value, index, subIndex) => ({
+export const updateContentIWT = (value, index, subIndex, key) => ({
   type: "UPDATE_CONTENT_IWT",
-  payload: { value, index, subIndex },
+  payload: { value, index, subIndex, key },
 });
 
-export const updateContentSpEx = (value, index, subIndex) => ({
+export const updateContentSpEx = (value, index, subIndex, key) => ({
   type: "UPDATE_CONTENT_SPEAKING_EXAMPLE",
-  payload: { value, index, subIndex },
+  payload: { value, index, subIndex, key },
 });
 
 export const updateContentCommanErrors = (value, index, subIndex, key) => ({
@@ -112,6 +260,15 @@ const setIsProcessing = (value) => ({
   payload: value,
 });
 
+export const setLoadingWordSets = (value) => ({
+  type: "SET_LOADING_WORDS_SETS",
+  payload: value,
+});
+
+export const setLoadingCollections = (value) => ({
+  type: "SET_LOADING_COLLECTIONS",
+  payload: value,
+});
 export const setCurrentWordIndex = (index) => ({
   type: "SET_CURRENT_WORD_INDEX",
   payload: index,
@@ -146,7 +303,7 @@ export const removeWordFromMissingList = (ApiPayload) => {
       collocation_list: ApiPayload,
     };
     const response = await APIClient.post("remove_collocations", body);
-    if (response.ok) {
+    if (response.ok && response.status === 200) {
       dispatch(refreshMCWordList());
       dispatch(getCollocationMissingWordsList());
       dispatch(ConfirmModal(false));
@@ -206,6 +363,7 @@ export const getCollocationMissingWordsList = (
 ) => {
   return async (dispatch) => {
     dispatch(setLoadingWordList(true));
+
     let pageSize = 50;
     const response = await APIClient.get(
       `missing_collocations?pageNumber=${pageNumber}&pageSize=${pageSize}`
@@ -244,7 +402,6 @@ export const GenerateConntentFromWords = (payload, generator) => {
       collocation_list: payload,
       generator: generator,
     });
-    console.log("genrate content response", response);
     if (response.ok) {
       dispatch({
         type: "SET_GENERATED_CONTENT",
@@ -450,6 +607,7 @@ function collocationsReducer(state = initialState, action) {
       let IWTValue = action.payload.value;
       var MainIndex = action.payload.index;
       var SubIndex = action.payload.subIndex;
+      var key = action.payload.key;
 
       return {
         ...state,
@@ -472,30 +630,50 @@ function collocationsReducer(state = initialState, action) {
       let SPEXValue = action.payload.value;
       var MainIndex = action.payload.index;
       var SubIndex = action.payload.subIndex;
+      var key = action.payload.key;
 
-      return {
-        ...state,
-        Content: state.Content.map((c, i) => {
-          if (i === MainIndex) {
-            return {
-              ...c,
-              speakingExamples: c.speakingExamples.map((spex, sxi) => {
-                if (sxi === SubIndex) {
-                  return SPEXValue;
-                }
-                return spex;
-              }),
-            };
-          }
-          return c;
-        }),
-      };
+      if (key === "question") {
+        return {
+          ...state,
+          Content: state.Content.map((c, i) => {
+            if (i === MainIndex) {
+              return {
+                ...c,
+                speakingExamples: c.speakingExamples.map((spex, sxi) => {
+                  if (sxi === SubIndex) {
+                    return { ...spex, question: SPEXValue };
+                  }
+                  return spex;
+                }),
+              };
+            }
+            return c;
+          }),
+        };
+      } else {
+        return {
+          ...state,
+          Content: state.Content.map((c, i) => {
+            if (i === MainIndex) {
+              return {
+                ...c,
+                speakingExamples: c.speakingExamples.map((spex, sxi) => {
+                  if (sxi === SubIndex) {
+                    return { ...spex, answer: SPEXValue };
+                  }
+                  return spex;
+                }),
+              };
+            }
+            return c;
+          }),
+        };
+      }
     case "UPDATE_CONTENT_COMMAN_ERRORS":
       let CEValue = action.payload.value;
       var MainIndex = action.payload.index;
       var SubIndex = action.payload.subIndex;
       var key = action.payload.key;
-
       if (key === "error") {
         return {
           ...state,
@@ -564,6 +742,43 @@ function collocationsReducer(state = initialState, action) {
       return { ...state, Content: action.payload };
     case "SET_CURRENT_WORD_INDEX":
       return { ...state, CurrentWordIndex: action.payload };
+    case "SET_COLLECTION_NAMES":
+      return { ...state, collection_names: action.payload };
+    case "SET_SELECTED_COLLECTION":
+      return { ...state, selected_collection: action.payload };
+    case "SET_OPENED_COLLECTION":
+      return { ...state, opened_collection: action.payload };
+    case "SET_LOADING_WORDS_SETS":
+      return { ...state, LoadingWordSets: action.payload };
+    case "SET_WORDS_SETS":
+      return { ...state, word_sets: action.payload };
+    case "SET_SELECTED_WORDSET":
+      return { ...state, selected_wordset: action.payload };
+    case "SET_SELECTED_LIST_TYPE":
+      return { ...state, selected_list_type: action.payload };
+    case "SET_LOADING_COLLECTIONS":
+      return { ...state, LoadingCollections: action.payload };
+    case "SET_VOCABULARY_LIST":
+      const ListType = action.payload.ListType;
+      if (ListType === "existing") {
+        return {
+          ...state,
+          vocabularyList: {
+            ...state.vocabularyList,
+            existing: action.payload.data,
+          },
+        };
+      } else {
+        return {
+          ...state,
+          vocabularyList: {
+            ...state.vocabularyList,
+            missing: action.payload.data,
+          },
+        };
+      }
+    case "SET_VOCABULARY_CONTENT":
+      return { ...state, vocabularyContent: action.payload };
     default:
       return state;
   }

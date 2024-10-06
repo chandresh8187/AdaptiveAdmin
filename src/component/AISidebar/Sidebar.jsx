@@ -7,7 +7,10 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import Navigation from "../../Router/Navigation";
 import Header from "../AIHeader/Header";
-import { getCollocationMissingWordsList } from "../../Redux/Reducers/CollocationReducer";
+import {
+  getCollectionList,
+  getCollocationMissingWordsList,
+} from "../../Redux/Reducers/CollocationReducer";
 import { useDispatch } from "react-redux";
 import { IconsAI } from "../../assets/Icons";
 
@@ -70,22 +73,18 @@ const Sidebar = () => {
           </div>
           <div
             className={`flex items-center ${
-              location.pathname === "/MissingWords" && "bg-Secondry"
+              location.pathname === "/WordsList" && "bg-Secondry"
             } cursor-pointer hover:bg-Secondry p-2 mt-1 mx-2 rounded-md`}
             onClick={() => {
-              if (location.pathname !== "./MissingWords") {
-                navigate("MissingWords");
-                dispatch(getCollocationMissingWordsList());
+              if (location.pathname !== "./WordsList") {
+                navigate("WordsList");
+                dispatch(getCollectionList());
               }
             }}
           >
             <MdOutlineAssignment />
 
             <div className="pl-2 font-USBold text-xs">Word List</div>
-          </div>
-          <div className="flex items-center cursor-pointer hover:bg-Secondry p-2 mt-2 mx-2 rounded-md">
-            <MdOutlineAssignmentLate />
-            <div className="pl-2  font-USBold text-xs">Removed Words</div>
           </div>
         </div>
       </div>

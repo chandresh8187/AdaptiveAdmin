@@ -11,12 +11,13 @@ export const APIClient = async (endpoint, { body, ...customConfig } = {}) => {
   };
 
   console.log("API ---> ", JSON.stringify(logData));
-
+  let xapikey = localStorage.getItem("xapikey");
   let config = {
     method: body ? "POST" : "GET",
     ...customConfig,
     headers: {
       ...headers,
+      "X-API-KEY": xapikey,
     },
   };
 
@@ -32,8 +33,10 @@ export const APIClient = async (endpoint, { body, ...customConfig } = {}) => {
       status: "",
     };
     try {
-      const response = await fetch(serverURL + endpoint, config);
-      console.log("api response", response);
+      const response = await fetch(serverURL + endpoint, {
+        ...config,
+        credentials: "include",
+      });
 
       if (!response.ok && response.status !== 200) {
         setLoading(false);
@@ -78,17 +81,52 @@ export const APIClient = async (endpoint, { body, ...customConfig } = {}) => {
       };
       resolve(jsonRes);
       console.error("API call error:", error);
-      reject(error); // Reject the original promise on error
+      reject(error);
     }
   });
 };
 
-// Clear the queue after processing
-
 APIClient.get = function (endpoint, customConfig = {}) {
   return APIClient(endpoint, { ...customConfig, method: "GET" });
 };
-APIClient.post = function (endpoint, body) {
+APIClient.post = function (endpoint, body = {}) {
   var customConfig = {};
   return APIClient(endpoint, { ...customConfig, body });
+};
+
+export const session = async (Token, endpoint, method) => {
+  const serverURL = "https://adaptiveielts.com:8383/";
+  let config = {
+    method: method,
+    headers: {
+      Authorization: `Bearer ${Token}`,
+    },
+  };
+
+  try {
+    const response = await fetch(serverURL + endpoint, {
+      ...config,
+      credentials: "include",
+    });
+    console.log("session response", response);
+    console.log("session response json", await response.json());
+    if (response.ok && response.status === 200) {
+      const xapikey = response.headers.get("x-api-key");
+      localStorage.setItem("xapikey", xapikey);
+      return true;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.log("session error", error);
+    return false;
+  }
+};
+
+session.register = async function (Token) {
+  return session(Token, "register", "POST");
+};
+
+session.start = async function (Token) {
+  return session(Token, "session", "GET");
 };

@@ -1,21 +1,27 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { MdPlaylistAddCheck, MdPlaylistRemove } from "react-icons/md";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { ThreeDots } from "react-loader-spinner";
 import { useDispatch, useSelector } from "react-redux";
 import TextareaAutosize from "react-textarea-autosize";
 import {
+  AddWordContent,
   addWordsInMissingList,
   ConfirmModal,
   GenerateConntentFromWords,
-  getCollocationMissingWordsList,
+  getMissingWordsList,
+  getVocabulary,
+  getWordSetsByCollection,
   openGeneraterModal,
+  regenerate,
+  RemoveExistingWords,
   removeWordFromMissingList,
   setCurrentWordIndex,
   setGenerater,
+  setLoadingWordSets,
   setSelectedListType,
   setSelectedMissingWords,
-  showVocabularyContent,
+  setSelectedWordset,
   updateContentCC,
   updateContentCommanErrors,
   updateContentExamples,
@@ -27,6 +33,7 @@ import {
   updateContentSynonymsEx,
   updateContentUsageTips,
   updateContentWord,
+  updateExistingWords,
 } from "../../Redux/Reducers/CollocationReducer";
 import { IconsAI } from "../../assets/Icons";
 import CheckBox from "../../component/AICheckBox/CheckBox";
@@ -42,13 +49,19 @@ function WordsList() {
   const wordlist = useSelector(
     (state) => state.Collocations.vocabularyList[selected_list_type]
   );
+  const wordlistState = useSelector(
+    (state) => state.Collocations.vocabularyList
+  );
+
   const word_sets = useSelector((state) => state.Collocations.word_sets);
   const collections = useSelector(
     (state) => state.Collocations.collection_names
   );
-
+  const WordListRef = useRef(null);
   const api_payload = useSelector((state) => state.Collocations.api_payload);
-
+  const selected_collection = useSelector(
+    (state) => state.Collocations.selected_collection
+  );
   const pageNumber = useSelector((state) => state.Collocations.MC_pageNumber);
   const Loading = useSelector((state) => state.Collocations.Loading);
   const Content = useSelector((state) => state.Collocations.Content);
@@ -69,9 +82,33 @@ function WordsList() {
     (state) => state.Collocations.LoadingCollections
   );
 
-  const vocabularyContent = useSelector(
-    (state) => state.Collocations.vocabularyContent
+  const selected_wordset = useSelector(
+    (state) => state.Collocations.selected_wordset
   );
+
+  const scrollToWord = (index) => {
+    if (WordListRef.current) {
+      const scrollableDiv = WordListRef.current;
+      const wordElement = scrollableDiv.querySelector(
+        `[data-word-id="${wordlist[index].id}"]`
+      );
+
+      if (wordElement) {
+        const scrollableRect = scrollableDiv.getBoundingClientRect();
+        const wordRect = wordElement.getBoundingClientRect();
+
+        if (
+          wordRect.bottom > scrollableRect.bottom ||
+          wordRect.top < scrollableRect.top
+        ) {
+          wordElement.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }
+      }
+    }
+  };
 
   const [IsEdit, setIsEdit] = useState(false);
   const [WordInput, setWordInput] = useState("");
@@ -82,7 +119,13 @@ function WordsList() {
 
   // it will call the api with next page number for word list
   const onEndReach = () => {
-    dispatch(getCollocationMissingWordsList(pageNumber + 1, wordlist));
+    dispatch(
+      getMissingWordsList(
+        selected_collection,
+        pageNumber + 1,
+        wordlistState["missing"]
+      )
+    );
   };
 
   //it will save all words and move it in to missing list
@@ -93,7 +136,8 @@ function WordsList() {
 
   // it will hanlde next word content navigation
   const handleNextWord = () => {
-    if (CurrentWordIndex < Content.length - 1) {
+    if (CurrentWordIndex < Content?.length - 1) {
+      scrollToWord(CurrentWordIndex + 1);
       dispatch(setCurrentWordIndex(CurrentWordIndex + 1));
     } else {
       dispatch(setCurrentWordIndex(CurrentWordIndex));
@@ -103,6 +147,8 @@ function WordsList() {
   // it will handle prev word content navigation
   const handlePrevWord = () => {
     if (CurrentWordIndex > 0) {
+      scrollToWord(CurrentWordIndex - 1);
+
       dispatch(setCurrentWordIndex(CurrentWordIndex - 1));
     } else {
       dispatch(setCurrentWordIndex(CurrentWordIndex));
@@ -111,23 +157,45 @@ function WordsList() {
 
   return (
     <div className="h-screen w-full">
-      <div className="py-2 bg-white shadow-sm flex items-center">
+      <div className="flex items-center">
         <div
           style={{
             width: "20%",
           }}
-          className="text-TextPrimary text-lg font-USBold pl-4"
+          className="text-TextPrimary py-2 text-lg font-USBold pl-4"
         >
           Collocations
         </div>
         <div className="flex justify-center ">
           <div
             onClick={() => {
+              dispatch(setCurrentWordIndex(0));
               dispatch(setSelectedListType("existing"));
+              if (
+                selected_collection !== "" &&
+                selected_list_type !== "existing"
+              ) {
+                if (selected_wordset === "") {
+                  dispatch(setLoadingWordSets(true));
+                  dispatch(getWordSetsByCollection(selected_collection, 1));
+                } else {
+                  dispatch({
+                    type: "SET_GENERATED_CONTENT",
+                    payload: [],
+                  });
+                  dispatch(
+                    getVocabulary(
+                      "existing",
+                      selected_collection,
+                      selected_wordset
+                    )
+                  );
+                }
+              }
             }}
             className={`${
-              selected_list_type === "existing" && "bg-gray-100"
-            } flex h-7 items-center px-2 py-1 rounded-md cursor-pointer border border-gray-100 mr-1`}
+              selected_list_type === "existing" && "bg-gray-300"
+            } flex h-7 items-center px-2 py-1 rounded-md cursor-pointer border border-gray-300 mr-1`}
           >
             <MdPlaylistAddCheck
               style={{
@@ -142,10 +210,27 @@ function WordsList() {
           <div
             onClick={() => {
               dispatch(setSelectedListType("missing"));
+              dispatch(setCurrentWordIndex(0));
+              if (
+                selected_collection !== "" &&
+                selected_list_type !== "missing"
+              ) {
+                dispatch(
+                  getMissingWordsList(
+                    selected_collection,
+                    1,
+                    wordlistState["missing"]
+                  )
+                );
+                dispatch({
+                  type: "SET_GENERATED_CONTENT",
+                  payload: [],
+                });
+              }
             }}
             className={`${
-              selected_list_type === "missing" && "bg-gray-100"
-            } flex h-7 items-center px-2 py-1 rounded-md cursor-pointer border border-gray-100 mr-1`}
+              selected_list_type === "missing" && "bg-gray-300"
+            } flex h-7 items-center px-2 py-1 rounded-md cursor-pointer border border-gray-300 mr-1`}
           >
             <MdPlaylistRemove
               style={{
@@ -185,9 +270,6 @@ function WordsList() {
                 </div>
               }
               dataLength={collections.length}
-              next={() => {
-                onEndReach();
-              }}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -242,25 +324,21 @@ function WordsList() {
                         </div>
                       </div>
                     )}
-                    <div className="flex h-7 items-center px-2  rounded-md cursor-pointer hover:bg-gray-100">
-                      <img src={IconsAI.Edit} className="h-5 w-5" alt="" />
-                      <div className="text-sm sm:text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                        Edit
+                    {selected_list_type === "missing" && (
+                      <div
+                        onClick={() => {
+                          if (api_payload.length > 0) {
+                            dispatch(ConfirmModal(true));
+                          }
+                        }}
+                        className="flex h-7 items-center select-none px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                      >
+                        <img src={IconsAI.Trash} className="h-5 w-5" alt="" />
+                        <div className="text-sm sm:text-xs  ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                          Remove
+                        </div>
                       </div>
-                    </div>
-                    <div
-                      onClick={() => {
-                        if (api_payload.length > 0) {
-                          dispatch(ConfirmModal(true));
-                        }
-                      }}
-                      className="flex h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
-                    >
-                      <img src={IconsAI.Trash} className="h-5 w-5" alt="" />
-                      <div className="text-sm sm:text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                        Remove
-                      </div>
-                    </div>
+                    )}
                   </>
                 )}
               </div>
@@ -269,6 +347,7 @@ function WordsList() {
             <div
               style={{}}
               id="scrollableDiv"
+              ref={WordListRef}
               className="bg-white w-full  overflow-scroll "
             >
               {Loading ? (
@@ -292,7 +371,7 @@ function WordsList() {
                     wrapperClass=""
                   />
                 </div>
-              ) : wordlist.length < 0 ? (
+              ) : wordlist.length <= 0 ? (
                 <div
                   style={{
                     height:
@@ -306,10 +385,11 @@ function WordsList() {
                 </div>
               ) : (
                 <InfiniteScroll
-                  dataLength={wordlist.length}
+                  dataLength={wordlistState["missing"].length}
                   next={() => {
                     onEndReach();
                   }}
+                  scrollThreshold={0.9}
                   style={{
                     display: "flex",
                     flexDirection: "column",
@@ -327,35 +407,18 @@ function WordsList() {
                       <div
                         key={index}
                         onClick={() => {
-                          if (selected_list_type === "existing") {
-                            if (Content.length > 0) {
-                              if (
-                                item.word !== Content[CurrentWordIndex].word
-                              ) {
-                                dispatch(
-                                  showVocabularyContent(
-                                    item.word,
-                                    vocabularyContent
-                                  )
-                                );
-                              }
-                            } else {
-                              dispatch(
-                                showVocabularyContent(
-                                  item.word,
-                                  vocabularyContent
-                                )
-                              );
-                            }
-                          }
+                          dispatch(setCurrentWordIndex(index));
                         }}
+                        data-word-id={item.id}
                         className={`${
                           selected_list_type === "existing" &&
-                          "cursor-pointer select-none hover:bg-gray-200 rounded-md"
-                        } w-full flex p-2`}
+                          `cursor-pointer select-none hover:bg-gray-200 rounded-md ${
+                            CurrentWordIndex === index && "bg-gray-200"
+                          }`
+                        } w-full flex py-1 px-2 mt-1.5`}
                       >
                         {selected_list_type === "missing" && (
-                          <div className="flex justify-center mr-3 font-USSemiBold bg-white">
+                          <div className="flex items-center justify-center mr-3 font-USSemiBold bg-white">
                             <CheckBox
                               Checked={item.isSelected}
                               word={item}
@@ -364,7 +427,7 @@ function WordsList() {
                           </div>
                         )}
 
-                        <div className="text-left  font-USSemiBold text-sm sm:text-sm text-TextPrimary">
+                        <div className="text-left font-USSemiBold text-sm sm:text-sm text-TextPrimary">
                           {item.word}
                         </div>
                       </div>
@@ -410,41 +473,75 @@ function WordsList() {
               </div>
 
               <div className="flex justify-between   items-center h-10">
-                {Content.length > 0 && (
+                {Content?.length > 0 && (
                   <div className="flex items-cente">
                     <div
                       onClick={() => {
                         setIsEdit(!IsEdit);
                       }}
-                      className="flex h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                      className="flex h-7 items-center px-2 py-1 select-none rounded-md cursor-pointer hover:bg-gray-100"
                     >
                       <img
                         src={IsEdit ? IconsAI.Check : IconsAI.Edit}
                         className="h-5 w-5"
                         alt=""
                       />
-                      <div className="text-sm sm:text-xs ml-2 mr-2 select-none font-USSemiBold text-TextPrimary">
+                      <div className="text-sm sm:text-xs ml-2 mr-2  font-USSemiBold text-TextPrimary">
                         {IsEdit ? "Done" : "Edit"}
                       </div>
                     </div>
                     {!IsEdit && (
-                      <div className="flex items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100">
-                        <img src={IconsAI.Save} className="h-5 w-5" alt="" />
-                        <div className="text-sm sm:text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
-                          Save
-                        </div>
-                      </div>
+                      <>
+                        {selected_list_type === "existing" && (
+                          <div
+                            onClick={() => {
+                              dispatch(ConfirmModal(true));
+                            }}
+                            className="flex h-7 items-center select-none px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                          >
+                            <img
+                              src={IconsAI.Trash}
+                              className="h-5 w-5"
+                              alt=""
+                            />
+                            <div className="text-sm sm:text-xs  ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                              Remove
+                            </div>
+                          </div>
+                        )}
+                        {selected_list_type === "existing" && (
+                          <div
+                            onClick={() => {
+                              dispatch(openGeneraterModal(true));
+                            }}
+                            className="flex h-7 items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                          >
+                            <img
+                              src={IconsAI.Generate}
+                              className="h-5 w-5"
+                              alt=""
+                            />
+                            <div className="text-sm sm:text-xs select-none ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                              Re-Generate
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
 
-                {Content.length > 1 && (
+                {Content?.length > 1 && !IsEdit && (
                   <div className="flex items-center">
                     <div
                       onClick={() => {
                         handlePrevWord();
                       }}
-                      className="flex  items-center justify-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                      className={`flex select-none items-center justify-center px-2 py-1 rounded-md  ${
+                        CurrentWordIndex > 0
+                          ? "opacity-100 hover:bg-gray-100 cursor-pointer"
+                          : "opacity-50 cursor-not-allowed"
+                      }`}
                     >
                       <img src={IconsAI.Prev} className="h-5 w-5" alt="" />
                       <div className="text-sm sm:text-xs mr-2 select-none font-USSemiBold text-TextPrimary">
@@ -455,7 +552,11 @@ function WordsList() {
                       onClick={() => {
                         handleNextWord();
                       }}
-                      className="flex  items-center px-2 py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                      className={`flex select-none items-center px-2 py-1 rounded-md  ${
+                        CurrentWordIndex < Content?.length - 1
+                          ? "opacity-100 hover:bg-gray-100 cursor-pointer"
+                          : "opacity-50 cursor-not-allowed"
+                      }`}
                     >
                       <div className="text-sm sm:text-xs ml-2 select-none justify-center font-USSemiBold text-TextPrimary">
                         Next
@@ -470,7 +571,7 @@ function WordsList() {
             <div
               id="scrollableDiv"
               style={{
-                height: window.innerHeight - 160,
+                height: window.innerHeight - 180,
                 overflow: "scroll",
                 display: "flex",
                 flexDirection: "column",
@@ -490,7 +591,7 @@ function WordsList() {
                     wrapperClass=""
                   />
                 </div>
-              ) : Content.length > 0 ? (
+              ) : Content?.length > 0 ? (
                 <div className="h-screen px-3">
                   <div className="py-2 flex  items-start">
                     <div className="">
@@ -503,7 +604,7 @@ function WordsList() {
                           verticalAlign: "center",
                         }}
                         readOnly={!IsEdit}
-                        value={Content[CurrentWordIndex].word}
+                        value={Content[CurrentWordIndex]?.word}
                         onChange={(e) =>
                           dispatch(
                             updateContentWord(e.target.value, CurrentWordIndex)
@@ -522,7 +623,7 @@ function WordsList() {
                           verticalAlign: "center",
                         }}
                         readOnly={!IsEdit}
-                        value={Content[CurrentWordIndex].partOfSpeech}
+                        value={Content[CurrentWordIndex]?.partOfSpeech}
                         onChange={(e) =>
                           dispatch(
                             updateContentPOP(e.target.value, CurrentWordIndex)
@@ -546,7 +647,7 @@ function WordsList() {
                           updateContentMeaning(e.target.value, CurrentWordIndex)
                         )
                       }
-                      value={Content[CurrentWordIndex].meaning}
+                      value={Content[CurrentWordIndex]?.meaning}
                       className="rounded-lg ml-5 mt-1 p-4 w-4/5 sm:text-sm text-TextPrimary font-USMedium   bg-[#f2f2f2] outline-none border-none resize-none"
                     />
                   </div>
@@ -555,31 +656,29 @@ function WordsList() {
                       Common Collocations
                     </div>
                     <div className="pl-5 pt-1 flex flex-col">
-                      {Content[CurrentWordIndex].commonCollocations?.map(
-                        (cc, i) => {
-                          return (
-                            <TextareaAutosize
-                              key={i}
-                              cols={50}
-                              style={{
-                                verticalAlign: "center",
-                              }}
-                              readOnly={!IsEdit}
-                              onChange={(e) =>
-                                dispatch(
-                                  updateContentCC(
-                                    e.target.value,
-                                    CurrentWordIndex,
-                                    i
-                                  )
+                      {Content[CurrentWordIndex]?.collocations?.map((cc, i) => {
+                        return (
+                          <TextareaAutosize
+                            key={i}
+                            cols={50}
+                            style={{
+                              verticalAlign: "center",
+                            }}
+                            readOnly={!IsEdit}
+                            onChange={(e) =>
+                              dispatch(
+                                updateContentCC(
+                                  e.target.value,
+                                  CurrentWordIndex,
+                                  i
                                 )
-                              }
-                              value={cc}
-                              className="rounded-lg w-fit p-4 my-1 sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
-                            />
-                          );
-                        }
-                      )}
+                              )
+                            }
+                            value={cc}
+                            className="rounded-lg w-fit p-4 my-1 sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                   <div className="py-2 flex flex-col items-start">
@@ -602,10 +701,10 @@ function WordsList() {
                             )
                           )
                         }
-                        value={Content[CurrentWordIndex].example}
+                        value={Content[CurrentWordIndex]?.example}
                         className="rounded-lg w-fit p-4 my-1 sm:text-sm text-TextPrimary font-USMedium  bg-[#f2f2f2] outline-none border-none resize-none"
                       />
-                      {Content[CurrentWordIndex].examples?.map((ex, i) => {
+                      {Content[CurrentWordIndex]?.examples?.map((ex, i) => {
                         return (
                           <TextareaAutosize
                             key={i}
@@ -635,7 +734,7 @@ function WordsList() {
                       Synonyms
                     </div>
                     <div className="pl-5 pt-1 flex flex-col">
-                      {Content[CurrentWordIndex].synonyms?.map((syn, i) => {
+                      {Content[CurrentWordIndex]?.synonyms?.map((syn, i) => {
                         return (
                           <TextareaAutosize
                             key={i}
@@ -665,7 +764,7 @@ function WordsList() {
                       Synonym Examples
                     </div>
                     <div className="pl-5 pt-1 flex flex-col">
-                      {Content[CurrentWordIndex].synonymExamples?.map(
+                      {Content[CurrentWordIndex]?.synonymExamples?.map(
                         (synex, i) => {
                           return (
                             <div
@@ -758,7 +857,7 @@ function WordsList() {
                       )}
                     </div> */}
                     <div className="pl-5 pt-1 flex flex-col">
-                      {Content[CurrentWordIndex].ieltsWritingTopics?.map(
+                      {Content[CurrentWordIndex]?.ieltsWritingTopics?.map(
                         (iwt, i) => {
                           return (
                             <div
@@ -851,7 +950,7 @@ function WordsList() {
                       )}
                     </div> */}
                     <div className="pl-5 pt-1 flex flex-col">
-                      {Content[CurrentWordIndex].speakingExamples?.map(
+                      {Content[CurrentWordIndex]?.speakingExamples?.map(
                         (spex, i) => {
                           return (
                             <div
@@ -917,63 +1016,65 @@ function WordsList() {
                       Common Errors
                     </div>
                     <div className="pl-5 pt-1 flex flex-col">
-                      {Content[CurrentWordIndex].commonErrors?.map((cEr, i) => {
-                        return (
-                          <div
-                            key={i}
-                            className="flex mt-2 flex-col items-center  bg-[#f2f2f2]  rounded-lg overflow-hidden p-4"
-                          >
-                            <div className="bg-transparent flex items-center ">
-                              <div className="sm:text-sm w-24 text-end pr-2  border-r text-TextPrimary font-USMedium">
-                                Error
-                              </div>
-                              <TextareaAutosize
-                                cols={50}
-                                readOnly={!IsEdit}
-                                onChange={(e) =>
-                                  dispatch(
-                                    updateContentCommanErrors(
-                                      e.target.value,
-                                      CurrentWordIndex,
-                                      i,
-                                      "error"
+                      {Content[CurrentWordIndex]?.commonErrors?.map(
+                        (cEr, i) => {
+                          return (
+                            <div
+                              key={i}
+                              className="flex mt-2 flex-col items-center  bg-[#f2f2f2]  rounded-lg overflow-hidden p-4"
+                            >
+                              <div className="bg-transparent flex items-center ">
+                                <div className="sm:text-sm w-24 text-end pr-2  border-r text-TextPrimary font-USMedium">
+                                  Error
+                                </div>
+                                <TextareaAutosize
+                                  cols={50}
+                                  readOnly={!IsEdit}
+                                  onChange={(e) =>
+                                    dispatch(
+                                      updateContentCommanErrors(
+                                        e.target.value,
+                                        CurrentWordIndex,
+                                        i,
+                                        "error"
+                                      )
                                     )
-                                  )
-                                }
-                                style={{
-                                  verticalAlign: "center",
-                                }}
-                                value={cEr.error}
-                                className="pl-2 w-full  sm:text-sm text-TextPrimary bg-transparent font-USMedium  outline-none border-none resize-none"
-                              />
-                            </div>
-                            <div className="bg-transparent  flex items-center pt-2">
-                              <div className="sm:text-sm w-24 text-end pr-2 border-r text-TextPrimary font-USMedium">
-                                Correction
+                                  }
+                                  style={{
+                                    verticalAlign: "center",
+                                  }}
+                                  value={cEr.error}
+                                  className="pl-2 w-full  sm:text-sm text-TextPrimary bg-transparent font-USMedium  outline-none border-none resize-none"
+                                />
                               </div>
-                              <TextareaAutosize
-                                cols={50}
-                                style={{
-                                  verticalAlign: "center",
-                                }}
-                                readOnly={!IsEdit}
-                                onChange={(e) =>
-                                  dispatch(
-                                    updateContentCommanErrors(
-                                      e.target.value,
-                                      CurrentWordIndex,
-                                      i,
-                                      "correction"
+                              <div className="bg-transparent  flex items-center pt-2">
+                                <div className="sm:text-sm w-24 text-end pr-2 border-r text-TextPrimary font-USMedium">
+                                  Correction
+                                </div>
+                                <TextareaAutosize
+                                  cols={50}
+                                  style={{
+                                    verticalAlign: "center",
+                                  }}
+                                  readOnly={!IsEdit}
+                                  onChange={(e) =>
+                                    dispatch(
+                                      updateContentCommanErrors(
+                                        e.target.value,
+                                        CurrentWordIndex,
+                                        i,
+                                        "correction"
+                                      )
                                     )
-                                  )
-                                }
-                                value={cEr.correction}
-                                className="pl-2 w-full  sm:text-sm text-TextPrimary font-USMedium  bg-transparent outline-none border-none resize-none"
-                              />
+                                  }
+                                  value={cEr.correction}
+                                  className="pl-2 w-full  sm:text-sm text-TextPrimary font-USMedium  bg-transparent outline-none border-none resize-none"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        }
+                      )}
                     </div>
                   </div>
                   <div className="py-2 flex flex-col items-start">
@@ -981,7 +1082,7 @@ function WordsList() {
                       Usage Tips
                     </div>
                     <div className="pl-5 pt-1 flex flex-col">
-                      {Content[CurrentWordIndex].usageTips?.map((usgtp, i) => {
+                      {Content[CurrentWordIndex]?.usageTips?.map((usgtp, i) => {
                         return (
                           <TextareaAutosize
                             key={i}
@@ -1009,8 +1110,37 @@ function WordsList() {
                 </div>
               ) : (
                 <div className="h-full w-full flex items-center justify-center flex-col font-USBold">
-                  <div>No Data Found</div>
-                  <div>Please Generate Some Content</div>
+                  <div>No Records Found</div>
+                </div>
+              )}
+            </div>
+            <div className="w-full flex items-center justify-end pr-5">
+              {Content.length > 0 && !IsEdit && (
+                <div
+                  onClick={() => {
+                    if (selected_list_type === "missing") {
+                      dispatch(
+                        AddWordContent(
+                          selected_collection,
+                          Content[CurrentWordIndex],
+                          Content
+                        )
+                      );
+                    } else {
+                      dispatch(
+                        updateExistingWords(
+                          selected_collection,
+                          Content[CurrentWordIndex]
+                        )
+                      );
+                    }
+                  }}
+                  className="flex items-center px-2 select-none py-1 rounded-md cursor-pointer hover:bg-gray-100"
+                >
+                  <img src={IconsAI.Save} className="h-5 w-5" alt="" />
+                  <div className="text-sm sm:text-xs  ml-2 mr-2 font-USSemiBold text-TextPrimary">
+                    Save
+                  </div>
                 </div>
               )}
             </div>
@@ -1022,16 +1152,22 @@ function WordsList() {
           Are you sure you want to Remove words :
         </div>
         <div className="p-2 flex items-center justify-center flex-wrap">
-          {api_payload.map((word, idx) => {
-            return (
-              <div
-                key={idx}
-                className="m-1 text-sm font-USMedium py-1 shadow-sm rounded-md bg-gray-200 px-5"
-              >
-                {word}
-              </div>
-            );
-          })}
+          {selected_list_type === "missing" ? (
+            api_payload.map((word, idx) => {
+              return (
+                <div
+                  key={idx}
+                  className="m-1 text-sm font-USMedium py-1 shadow-sm rounded-md bg-gray-200 px-5"
+                >
+                  {word}
+                </div>
+              );
+            })
+          ) : (
+            <div className="m-1 text-sm font-USMedium py-1 shadow-sm rounded-md bg-gray-200 px-5">
+              {Content[CurrentWordIndex]?.word}
+            </div>
+          )}
         </div>
         <div className="p-3 border-t font-USMedium text-TextPrimary text-base flex items-center justify-center">
           <div
@@ -1044,7 +1180,17 @@ function WordsList() {
           </div>
           <div
             onClick={() => {
-              dispatch(removeWordFromMissingList(api_payload));
+              if (selected_list_type === "missing") {
+                dispatch(removeWordFromMissingList(api_payload));
+              } else {
+                dispatch(
+                  RemoveExistingWords(
+                    selected_collection,
+                    Content[CurrentWordIndex].word,
+                    selected_wordset
+                  )
+                );
+              }
             }}
             className="bg-Primary ml-3 select-none cursor-pointer text-white font-USSemiBold text-sm px-7 py-1 rounded-md"
           >
@@ -1103,7 +1249,19 @@ function WordsList() {
           </div>
           <div
             onClick={() => {
-              dispatch(GenerateConntentFromWords(api_payload, Generator));
+              if (selected_list_type === "missing") {
+                dispatch(
+                  GenerateConntentFromWords(
+                    selected_collection,
+                    api_payload,
+                    Generator
+                  )
+                );
+              } else {
+                dispatch(
+                  regenerate(Content[CurrentWordIndex], Generator, Content)
+                );
+              }
             }}
             className="flex border bg-Primary ml-1 h-7 items-center px-2 py-1 rounded-md cursor-pointer"
           >

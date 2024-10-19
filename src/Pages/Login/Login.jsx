@@ -8,6 +8,7 @@ import {
   getAuth,
   getIdToken,
   updateEmail,
+  onAuthStateChanged,
 } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -43,6 +44,22 @@ function Login() {
   const [IsDisabledCont, setIsDisabledCont] = useState(true);
   const { Auth } = useAuth();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    onAuthStateChanged(Auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/auth.user
+        const uid = user.uid;
+        console.log("user onAuthStateChanged", user);
+        // ...
+      } else {
+        // User is signed out
+        // ...
+      }
+    });
+  }, []);
+
   const onCaptchaVerify = () => {
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(

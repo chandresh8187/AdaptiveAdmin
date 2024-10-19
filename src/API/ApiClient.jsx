@@ -45,6 +45,7 @@ export const APIClient = async (endpoint, { body, ...customConfig } = {}) => {
           status: response.status,
           message: "Request failed with status code : " + response.status,
         };
+        console.log("await response.json()", await response.json());
         resolve(jsonRes);
         console.error("something went wrong please try again ok false");
         return;

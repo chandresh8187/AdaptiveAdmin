@@ -9,6 +9,8 @@ import ActionIcon from "./svg/action.svg";
 import NextIcon from "./svg/next_arrow.svg";
 import PrevIcon from "./svg/prev_arrow.svg";
 import CheckIcon from "./svg/checkMark.svg";
+import EyeIcon from "./svg/Eye.svg";
+import LogOutIcon from "./svg/logout.svg";
 export const IconsAI = {
   Dashboard: DashboardIcon,
   Generate: GenerateIcon,
@@ -21,4 +23,6 @@ export const IconsAI = {
   Next: NextIcon,
   Prev: PrevIcon,
   Check: CheckIcon,
+  Eye: EyeIcon,
+  Logout: LogOutIcon,
 };
